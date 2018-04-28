@@ -59,6 +59,19 @@ defmodule TodoList do
 end
 
 
+defmodule TodoList.CSVImporter do
+    def import(path) do
+        File.stream!(path)
+        |> Stream.map(&String.replace(&1, "\n", ""))
+        |> Stream.map(&String.split(&1, ","))
+        |> Stream.map(fn([date, title]) -> [String.split(date, "/"), title] end)
+        |> Stream.map(fn([date, title]) -> [Enum.map(date, &String.to_integer/1), title] end)
+        |> Stream.map(fn([date, title]) -> %{date: date, title: title} end)
+        |> TodoList.new
+    end
+end
+
+
 defmodule Main do
     def main do
         todo_list = TodoList.new
@@ -68,6 +81,10 @@ defmodule Main do
 
         todo_list
         |> TodoList.entries({2018, 5, 14})
+    end
+
+    def import(path) do
+        TodoList.CSVImporter.import(path)
     end
 
     def list_all(todo_list, date),  do: TodoList.entries(todo_list, date)
